@@ -1,0 +1,10 @@
+﻿File that opens when the help button is pressed.
+
+Files for Invoices and Totals should be .csv files.
+The Invoice file should contain (in this order): Invoice number, customer name, item name, item price.
+The Totals file should contain (in this order): Invoice number, total price.
+
+Press the Invoices button to select the Invoice file.
+Press the Totals button to select the Totals file.
+Then press the Create File, select a file location, and a new .csv file will be created.
+
