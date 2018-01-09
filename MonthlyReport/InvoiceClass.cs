@@ -10,9 +10,9 @@ namespace MonthlyReport
     {
         public int InvoiceNumber { get; set; }
         public string InvoiceName { get; set; }
-        public ItemsClass[] InvoiceItemArray { get; set; }
+        public List <ItemsClass> InvoiceItemArray { get; set; }
         public decimal InvoiceTotal { get; set; }
-        public InvoiceClass(int invoiceNumber, string invoiceName, ItemsClass[] invoiceItemArray, decimal invoiceTotal)
+        public InvoiceClass(int invoiceNumber, string invoiceName, List <ItemsClass> invoiceItemArray, decimal invoiceTotal)
         {
             InvoiceNumber = invoiceNumber;
             InvoiceName = invoiceName;
