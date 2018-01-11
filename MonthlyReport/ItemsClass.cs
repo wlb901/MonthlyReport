@@ -9,8 +9,8 @@ namespace MonthlyReport
     class ItemsClass
     {
         public string ItemName { get; set; }
-        public double ItemPrice { get; set; }
-        public ItemsClass(string itemName, double itemPrice)
+        public decimal ItemPrice { get; set; }
+        public ItemsClass(string itemName, decimal itemPrice)
         {
             ItemName = itemName;
             ItemPrice = itemPrice;
