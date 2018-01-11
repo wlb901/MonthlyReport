@@ -8,9 +8,9 @@ namespace MonthlyReport
 {
     class InvoiceTotal
     {
-        public string Number { get; set; }
-        public string Total { get; set; }
-        public InvoiceTotal(string number, string total)
+        public int Number { get; set; }
+        public decimal Total { get; set; }
+        public InvoiceTotal(int number, decimal total)
         {
             Number = number;
             Total = total;

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -69,25 +70,55 @@ namespace MonthlyReport
 
 
             //1. Save location
+            
+
 
             //2. Read files
-            List <InvoiceClass> invoiceList0 = ReadInvoiceFile(invoicesFile);
+            List<InvoiceClass> invoiceList0 = ReadInvoiceFile(invoicesFile);
             List<InvoiceTotal> totalsList = ReadTotalsFile(totalsFile);
 
-            for(int i = 0; i < invoiceList0.Count(); i++)
-            {
-                Console.Write(invoiceList0[i].InvoiceNumber + " " + invoiceList0[i].InvoiceName + " ");
-                for(int j = 0; j < invoiceList0[i].InvoiceItemArray.Count(); j++)
-                {
-                    Console.Write(invoiceList0[i].InvoiceItemArray[j].ItemName + " " + invoiceList0[i].InvoiceItemArray[j].ItemPrice + " ");
-                }
-                Console.WriteLine(invoiceList0[i].InvoiceTotal);
-            }
+            
 
             //3. Maniputlate data
+            List<OutputClass> outputList = new List<OutputClass>();
+            List<InvoiceClass> sortedInvoice = invoiceList0.OrderBy(o => o.InvoiceNumber).ToList();
+            
+            for (int i = 0; i < sortedInvoice.Count(); i++)
+            {
+                    sortedInvoice[i].InvoiceTotal = totalsList[i].Total;
+            }
 
             //4. Generate output file
-        }
+            outputList = OutputList(sortedInvoice);
+            
+
+            Stream myStream;
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            saveFileDialog1.FilterIndex = 2;
+            saveFileDialog1.RestoreDirectory = true;
+
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                if ((myStream = saveFileDialog1.OpenFile()) != null)
+                {
+                    using (StreamWriter sw = new StreamWriter(myStream))
+                    {
+                        sw.WriteLine("Invoice,Name,TaxSale,WholeSale,FET,Disp,Labor,Scrap,Casing,TIS");
+                       
+                            for (int i = 0; i < outputList.Count(); i++)
+                            {
+                                sw.WriteLine(outputList[i].OutputNumber + "," + outputList[i].OutputName + "," + outputList[i].TaxSale + ","
+                                    + outputList[i].Wholesale + "," + outputList[i].FET + "," + outputList[i].Disposal + "," + outputList[i].Labor +
+                                    "," + outputList[i].Scrap + "," + outputList[i].Casing + "," + outputList[i].TIS);
+                            }
+                    }
+
+                    myStream.Close();
+                }
+            }
+
+                    }
 
         //Function to read invoiceFile to a list of objects
         static List<InvoiceClass> ReadInvoiceFile(string invoiceFile)
@@ -106,7 +137,7 @@ namespace MonthlyReport
 
                 while ((line = file.ReadLine()) != null)
                 {
-                    string[] words = line.Split(';');
+                    string[] words = line.Split(',');
 
                     if (words[1] != "")
                     {
@@ -114,24 +145,31 @@ namespace MonthlyReport
                         if (words[0] != prevInvoiceNumber)
                         {
                             List<ItemsClass> items = new List<ItemsClass>();
-                            items.Add(new ItemsClass(words[2], double.Parse(words[3])));
+                            items.Add(new ItemsClass(words[2], decimal.Parse(words[3])));
                             invoiceList.Add(new InvoiceClass(int.Parse(words[0]), words[1], items, 0));
                             i++;
                             prevInvoiceNumber = words[0];
                         }
                         else
                         {
-                            invoiceList[i].InvoiceItemArray.Add(new ItemsClass(words[2], double.Parse(words[3], format)));
+                            invoiceList[i].InvoiceItemArray.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
                             prevInvoiceNumber = words[0];
                         }
                     }
                    
                 }
+                file.Close();
             }
-            catch (Exception ex)
+            catch (IOException e)
+            {
+                if (e.Source != null)
+                    Console.WriteLine("IOException source: {0}", e.Source);
+                throw;
+            }
+            /*catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
-            }
+            }*/
 
             return invoiceList;
         }
@@ -149,7 +187,7 @@ namespace MonthlyReport
                 while ((line = file.ReadLine()) != null)
                 {
                     string[] words = line.Split(',');
-                    totalsList.Add(new InvoiceTotal(words[0], words[1]));
+                    totalsList.Add(new InvoiceTotal(int.Parse(words[0]), decimal.Parse(words[1])));
                 }
                 file.Close();
             }
@@ -161,5 +199,90 @@ namespace MonthlyReport
             return totalsList;
 
         }
+
+        //Function to generate output
+        static void GenerateOutput ()
+        {
+            
+        }
+
+        //Function to create a list for output
+        static List<OutputClass> OutputList (List<InvoiceClass> invoiceList)
+        {
+            List<OutputClass> output = new List<OutputClass>();
+            
+            
+            
+            for (int i = 0; i < invoiceList.Count(); i++)
+            {
+                decimal tax = 0;
+                decimal fet = 0;
+                decimal disposal = 0;
+                decimal labor = 0;
+                decimal scrap = 0;
+                decimal casing = 0;
+                decimal total = invoiceList[i].InvoiceTotal;
+
+                if (IsTaxSale(invoiceList[i]))
+                {
+                    for(int j = 0; j < invoiceList[i].InvoiceItemArray.Count(); j++)
+                    {
+                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("F.E.T"))
+                        {
+                            fet += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                        }
+                        if(invoiceList[i].InvoiceItemArray[j].ItemName == "TIRE DISPOSAL")
+                        {
+                            disposal += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                        }
+                        if(invoiceList[i].InvoiceItemArray[j].ItemName == "MOUNT & DISMOUNT" ||
+                            invoiceList[i].InvoiceItemArray[j].ItemName == "REPAIR")
+                        {
+                            Console.WriteLine("labor" + " i: " + i + " j: " + j);
+                            labor += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                        }
+                        if(invoiceList[i].InvoiceItemArray[j].ItemName == "SCRAP TIRE ENVIRONMENTAL FEE")
+                        {
+                            scrap += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                        }
+                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("CASING"))
+                        {
+                            casing += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                        }
+                        
+                    }
+                    tax = total - fet - disposal - labor - scrap - casing;
+                    output.Add(new OutputClass(invoiceList[i].InvoiceNumber, invoiceList[i].InvoiceName, tax, 0, 
+                        fet, disposal, labor, scrap, casing, total, total));
+                }
+                else
+                {
+                    output.Add(new OutputClass(invoiceList[i].InvoiceNumber, invoiceList[i].InvoiceName, 0, total,
+                        0, 0, 0, 0, 0, total, total));
+                }
+            }
+            return output;
+        }
+
+        //Function to check if an invoice is a tax sale (or whole sale)
+        static bool IsTaxSale (InvoiceClass invoice)
+        {
+            decimal itemsTotal = 0;
+            for(int i = 0; i < invoice.InvoiceItemArray.Count(); i++)
+            {
+                itemsTotal += invoice.InvoiceItemArray[i].ItemPrice;
+            }
+
+            if(itemsTotal == invoice.InvoiceTotal)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+
     }
 }
