@@ -84,9 +84,13 @@ namespace MonthlyReport
             List<InvoiceClass> sortedInvoice = invoiceList0.OrderBy(o => o.InvoiceNumber).ToList();
             
             for (int i = 0; i < sortedInvoice.Count(); i++)
+                
             {
-                    sortedInvoice[i].InvoiceTotal = totalsList[i].Total;
+                Console.WriteLine(sortedInvoice[i].InvoiceNumber + " " + sortedInvoice[i].InvoiceName + " " + sortedInvoice[i].InvoiceTotal + " " + i);
+                sortedInvoice[i].InvoiceTotal = totalsList[i].Total;
+                
             }
+            
 
             //4. Generate output file
             outputList = OutputList(sortedInvoice);
@@ -139,7 +143,7 @@ namespace MonthlyReport
                 {
                     string[] words = line.Split(',');
 
-                    if (words[1] != "")
+                    //if (words[1] != "")
                     {
                         InvoiceClass invoice = new InvoiceClass(0, "", itemsList, 0);
                         if (words[0] != prevInvoiceNumber)
@@ -186,15 +190,25 @@ namespace MonthlyReport
 
                 while ((line = file.ReadLine()) != null)
                 {
+                    
                     string[] words = line.Split(',');
+                    Console.WriteLine(line);// + " " + int.Parse(words[0]));
                     totalsList.Add(new InvoiceTotal(int.Parse(words[0]), decimal.Parse(words[1])));
                 }
                 file.Close();
             }
-            catch (Exception ex)
+           catch (IOException e)
+            {
+                if (e.Source != null)
+                    Console.WriteLine("IOException source: {0}", e.Source);
+                throw;
+            }
+            
+           /*  catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
-            }
+
+            }*/
 
             return totalsList;
 
@@ -231,12 +245,12 @@ namespace MonthlyReport
                         {
                             fet += invoiceList[i].InvoiceItemArray[j].ItemPrice;
                         }
-                        if(invoiceList[i].InvoiceItemArray[j].ItemName == "TIRE DISPOSAL")
+                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("DISPOSAL"))
                         {
                             disposal += invoiceList[i].InvoiceItemArray[j].ItemPrice;
                         }
-                        if(invoiceList[i].InvoiceItemArray[j].ItemName == "MOUNT & DISMOUNT" ||
-                            invoiceList[i].InvoiceItemArray[j].ItemName == "REPAIR")
+                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("DISMOUNT") ||
+                            invoiceList[i].InvoiceItemArray[j].ItemName.Contains("REPAIR"))
                         {
                             Console.WriteLine("labor" + " i: " + i + " j: " + j);
                             labor += invoiceList[i].InvoiceItemArray[j].ItemPrice;
@@ -245,8 +259,9 @@ namespace MonthlyReport
                         {
                             scrap += invoiceList[i].InvoiceItemArray[j].ItemPrice;
                         }
-                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("CASING"))
-                        {
+                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("CASING") ||
+                           invoiceList[i].InvoiceItemArray[j].ItemName.Contains("ADJ"))
+                        { 
                             casing += invoiceList[i].InvoiceItemArray[j].ItemPrice;
                         }
                         
