@@ -28,7 +28,7 @@ The goal of this project is to speed up the creation of the Monthly Sales Report
 
 **Press the Create File button
 
-![alt text](docs/Screenshots/CreateFileButton)
+![alt text](docs/Screenshots/CreateFileButton.png)
 
 **Select the location to save the file**
 
