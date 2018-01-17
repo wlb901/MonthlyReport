@@ -20,7 +20,7 @@ The goal of this project is to speed up the creation of the Monthly Sales Report
 
 **4. Press the Create File button and select the location to save the file**
 
-![alt text](docs/Screenshots/SelectTotalsFile.png)
+![alt text](docs/Screenshots/SelectOutputFile.png)
 
 **The Output File should look something like this**
 
