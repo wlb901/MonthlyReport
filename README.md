@@ -6,19 +6,31 @@ I'm creating this program for a local small business. The Monthly Sales Report w
 The goal of this project is to speed up the creation of the Monthly Sales Report.
 
 
-**1. Start the program**
+**Start the program**
 
 ![alt text](docs/Screenshots/Monthly.png)
 
-**2. Press the Invoices Button and select the Invoice File**
+**Press the Invoices Button**
+
+![alt text](docs/Screenshots/InvoicesButton.png)
+
+**Select the Invoice File**
 
 ![alt text](docs/Screenshots/SelectInvoiceFile.png)
 
-**3. Press the Totals Button and select the Totals File**
+**Press the Totals Button**
+
+![alt text](docs/Screenshots/TotalsButton.png)
+
+**Select the Totals File**
 
 ![alt text](docs/Screenshots/SelectTotalsFile.png)
 
-**4. Press the Create File button and select the location to save the file**
+**Press the Create File button
+
+![alt text](docs/Screenshots/CreateFileButton)
+
+**Select the location to save the file**
 
 ![alt text](docs/Screenshots/SelectOutputFile.png)
 
