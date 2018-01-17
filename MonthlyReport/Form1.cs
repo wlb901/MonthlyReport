@@ -14,7 +14,6 @@ namespace MonthlyReport
 {
     public partial class Form1 : Form
     {
-        //static List<InvoiceClass> invoiceList = new List<InvoiceClass>();
         OpenFileDialog ofd = new OpenFileDialog();
         string invoicesFile;
         string totalsFile;
@@ -62,67 +61,35 @@ namespace MonthlyReport
 
         private void CreateFileButton_Click(object sender, EventArgs e)
         {
-            /*This will be the execute button. It will do four things: 
-             * 1. Select a location to save the final report (.CSV)
-             * 2. Read in the files for Invoices and Totals
-             * 3. Manipulate data to fit the final report
-             * 4. Generate a .CSV file with the final report */
+            /*This will be the execute button. It will do three things: 
+             * 1. Read in the files for Invoices and Totals
+             * 2. Manipulate data to fit the final report
+             * 3. Generate a .CSV file with the final report */
 
-
-            //1. Save location
             
-
-
-            //2. Read files
+            //1. Read files
             List<InvoiceClass> invoiceList0 = ReadInvoiceFile(invoicesFile);
             List<InvoiceTotal> totalsList = ReadTotalsFile(totalsFile);
 
             
-
-            //3. Maniputlate data
+            //2. Maniputlate data
             List<OutputClass> outputList = new List<OutputClass>();
             List<InvoiceClass> sortedInvoice = invoiceList0.OrderBy(o => o.InvoiceNumber).ToList();
             
             for (int i = 0; i < sortedInvoice.Count(); i++)
                 
             {
-                Console.WriteLine(sortedInvoice[i].InvoiceNumber + " " + sortedInvoice[i].InvoiceName + " " + sortedInvoice[i].InvoiceTotal + " " + i);
                 sortedInvoice[i].InvoiceTotal = totalsList[i].Total;
-                
             }
-            
 
-            //4. Generate output file
             outputList = OutputList(sortedInvoice);
-            
 
-            Stream myStream;
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
-            saveFileDialog1.FilterIndex = 2;
-            saveFileDialog1.RestoreDirectory = true;
 
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                if ((myStream = saveFileDialog1.OpenFile()) != null)
-                {
-                    using (StreamWriter sw = new StreamWriter(myStream))
-                    {
-                        sw.WriteLine("Invoice,Name,TaxSale,WholeSale,FET,Disp,Labor,Scrap,Casing,TIS");
-                       
-                            for (int i = 0; i < outputList.Count(); i++)
-                            {
-                                sw.WriteLine(outputList[i].OutputNumber + "," + outputList[i].OutputName + "," + outputList[i].TaxSale + ","
-                                    + outputList[i].Wholesale + "," + outputList[i].FET + "," + outputList[i].Disposal + "," + outputList[i].Labor +
-                                    "," + outputList[i].Scrap + "," + outputList[i].Casing + "," + outputList[i].TIS);
-                            }
-                    }
+            //3. Generate output file
+            GenerateOutput(outputList);
 
-                    myStream.Close();
-                }
-            }
+        }
 
-                    }
 
         //Function to read invoiceFile to a list of objects
         static List<InvoiceClass> ReadInvoiceFile(string invoiceFile)
@@ -143,37 +110,29 @@ namespace MonthlyReport
                 {
                     string[] words = line.Split(',');
 
-                    //if (words[1] != "")
+                    
+                    InvoiceClass invoice = new InvoiceClass(0, "", itemsList, 0);
+                    if (words[0] != prevInvoiceNumber)
                     {
-                        InvoiceClass invoice = new InvoiceClass(0, "", itemsList, 0);
-                        if (words[0] != prevInvoiceNumber)
-                        {
-                            List<ItemsClass> items = new List<ItemsClass>();
-                            items.Add(new ItemsClass(words[2], decimal.Parse(words[3])));
-                            invoiceList.Add(new InvoiceClass(int.Parse(words[0]), words[1], items, 0));
-                            i++;
-                            prevInvoiceNumber = words[0];
-                        }
-                        else
-                        {
-                            invoiceList[i].InvoiceItemArray.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
-                            prevInvoiceNumber = words[0];
-                        }
+                        List<ItemsClass> items = new List<ItemsClass>();
+                        items.Add(new ItemsClass(words[2], decimal.Parse(words[3])));
+                        invoiceList.Add(new InvoiceClass(int.Parse(words[0]), words[1], items, 0));
+                        i++;
+                        prevInvoiceNumber = words[0];
                     }
-                   
+                    else
+                    {
+                        invoiceList[i].InvoiceItemArray.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
+                        prevInvoiceNumber = words[0];
+                    }
+                    
                 }
                 file.Close();
             }
-            catch (IOException e)
-            {
-                if (e.Source != null)
-                    Console.WriteLine("IOException source: {0}", e.Source);
-                throw;
-            }
-            /*catch (Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
-            }*/
+            }
 
             return invoiceList;
         }
@@ -190,34 +149,47 @@ namespace MonthlyReport
 
                 while ((line = file.ReadLine()) != null)
                 {
-                    
                     string[] words = line.Split(',');
-                    Console.WriteLine(line);// + " " + int.Parse(words[0]));
                     totalsList.Add(new InvoiceTotal(int.Parse(words[0]), decimal.Parse(words[1])));
                 }
                 file.Close();
             }
-           catch (IOException e)
-            {
-                if (e.Source != null)
-                    Console.WriteLine("IOException source: {0}", e.Source);
-                throw;
-            }
-            
-           /*  catch (Exception ex)
+             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
 
-            }*/
-
+            }
             return totalsList;
-
         }
 
-        //Function to generate output
-        static void GenerateOutput ()
+        //Function to generate output as a csv file
+        static void GenerateOutput (List<OutputClass> outputList)
         {
-            
+            Stream myStream;
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            saveFileDialog1.FilterIndex = 2;
+            saveFileDialog1.RestoreDirectory = true;
+
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                if ((myStream = saveFileDialog1.OpenFile()) != null)
+                {
+                    using (StreamWriter sw = new StreamWriter(myStream))
+                    {
+                        sw.WriteLine("Invoice,Name,TaxSale,WholeSale,FET,Disp,Labor,Scrap,Casing,TIS");
+
+                        for (int i = 0; i < outputList.Count(); i++)
+                        {
+                            sw.WriteLine(outputList[i].OutputNumber + "," + outputList[i].OutputName + "," + outputList[i].TaxSale + ","
+                                + outputList[i].Wholesale + "," + outputList[i].FET + "," + outputList[i].Disposal + "," + outputList[i].Labor +
+                                "," + outputList[i].Scrap + "," + outputList[i].Casing + "," + outputList[i].TIS);
+                        }
+                    }
+
+                    myStream.Close();
+                }
+            }
         }
 
         //Function to create a list for output
@@ -252,7 +224,6 @@ namespace MonthlyReport
                         if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("DISMOUNT") ||
                             invoiceList[i].InvoiceItemArray[j].ItemName.Contains("REPAIR"))
                         {
-                            Console.WriteLine("labor" + " i: " + i + " j: " + j);
                             labor += invoiceList[i].InvoiceItemArray[j].ItemPrice;
                         }
                         if(invoiceList[i].InvoiceItemArray[j].ItemName == "SCRAP TIRE ENVIRONMENTAL FEE")
