@@ -8,7 +8,7 @@ If the invoice total is equal to the sum of all item prices for an invoice numbe
 
 This data shows a full breakdown of each invoice for tax and total sales information.
 
-I'm creating this program for a local small business (Owned by my parents, so I'm doing the work for free and making the project files public). The Monthly Sales Report was previously created by hand.
+I'm creating this program for a local small business (Owned by my parents, so I'm doing the work for free and have permission to make the project files public). The Monthly Sales Report was previously created by hand.
 
 The goal of this project is to speed up the creation of the Monthly Sales Report.
 
