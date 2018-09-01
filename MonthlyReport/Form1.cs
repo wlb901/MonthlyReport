@@ -70,7 +70,6 @@ namespace MonthlyReport
             //1. Read files
             List<InvoiceClass> invoiceList0 = ReadInvoiceFile(invoicesFile);
             List<InvoiceTotal> totalsList = ReadTotalsFile(totalsFile);
-
             
             //2. Maniputlate data
             List<OutputClass> outputList = new List<OutputClass>();
@@ -94,7 +93,6 @@ namespace MonthlyReport
         //Function to read invoiceFile to a list of objects
         static List<InvoiceClass> ReadInvoiceFile(string invoiceFile)
         {
-            string line;
             string prevInvoiceNumber = "0";
             List<InvoiceClass> invoiceList = new List<InvoiceClass>();
             List<ItemsClass> itemsList = new List<ItemsClass>();
@@ -104,33 +102,43 @@ namespace MonthlyReport
 
             try
             {
-                System.IO.StreamReader file = new System.IO.StreamReader(invoiceFile);
 
-                while ((line = file.ReadLine()) != null)
+                using (Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(invoiceFile))
                 {
-                    string[] words = line.Split(',');
+                    parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
+                    parser.SetDelimiters(",");
+                    while (!parser.EndOfData)
+                    {
+                        string[] words = parser.ReadFields();//line.Split(',');
 
-                    
-                    InvoiceClass invoice = new InvoiceClass(0, "", itemsList, 0);
-                    if (words[0] != prevInvoiceNumber)
-                    {
-                        List<ItemsClass> items = new List<ItemsClass>();
-                        items.Add(new ItemsClass(words[2], decimal.Parse(words[3])));
-                        invoiceList.Add(new InvoiceClass(int.Parse(words[0]), words[1], items, 0));
-                        i++;
-                        prevInvoiceNumber = words[0];
-                    }
-                    else
-                    {
-                        invoiceList[i].InvoiceItemArray.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
-                        prevInvoiceNumber = words[0];
-                    }
-                    
+                        InvoiceClass invoice = new InvoiceClass(0, "", itemsList, 0);
+                        //if (words[0].Any(x => !char.IsLetter(x)))
+                        if (!words[0].Any(Char.IsLetter))
+                        {
+                            //Console.WriteLine(words[0]);
+                            if (words[0] != prevInvoiceNumber)
+                            {
+                                List<ItemsClass> items = new List<ItemsClass>();
+                                items.Add(new ItemsClass(words[2], decimal.Parse(words[3])));
+                                invoiceList.Add(new InvoiceClass(int.Parse(words[0]), words[1], items, 0));
+                                i++;
+                                prevInvoiceNumber = words[0];
+                            }
+                            else
+                            {
+                                invoiceList[i].InvoiceItemArray.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
+                                prevInvoiceNumber = words[0];
+                            }
+                        }//if                      
+
+                    }//while
+                    parser.Close();
                 }
-                file.Close();
+                    
             }
             catch (Exception ex)
             {
+                Console.WriteLine("invoice error");
                 MessageBox.Show(ex.Message);
             }
 
@@ -140,22 +148,35 @@ namespace MonthlyReport
         //Function to read totalsFile to a list of objects
         static List<InvoiceTotal> ReadTotalsFile(string totalsFile)
         {
-            string line;
             List<InvoiceTotal> totalsList = new List<InvoiceTotal>();
 
             try
             {
-                System.IO.StreamReader file = new System.IO.StreamReader(totalsFile);
 
-                while ((line = file.ReadLine()) != null)
+                using (Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(totalsFile))
                 {
-                    string[] words = line.Split(',');
-                    totalsList.Add(new InvoiceTotal(int.Parse(words[0]), decimal.Parse(words[1])));
+                    parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
+                    parser.SetDelimiters(",");
+                    while (!parser.EndOfData)
+                    {
+                        string[] words = parser.ReadFields();
+                        if (!words[0].Any(Char.IsLetter))
+                        {
+                            Console.WriteLine(words[0]);
+                            totalsList.Add(new InvoiceTotal(int.Parse(words[0]), decimal.Parse(words[1])));
+
+                        }
+                    }
+                    parser.Close();
+                   
                 }
-                file.Close();
+                Console.WriteLine("closing");
+                
+                //file.Close();
             }
              catch (Exception ex)
             {
+                Console.WriteLine("totals error");
                 MessageBox.Show(ex.Message);
 
             }
@@ -167,7 +188,7 @@ namespace MonthlyReport
         {
             Stream myStream;
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            saveFileDialog1.Filter = "CSV files (*.csv)|*.csv";
             saveFileDialog1.FilterIndex = 2;
             saveFileDialog1.RestoreDirectory = true;
 
@@ -181,7 +202,7 @@ namespace MonthlyReport
 
                         for (int i = 0; i < outputList.Count(); i++)
                         {
-                            sw.WriteLine(outputList[i].OutputNumber + "," + outputList[i].OutputName + "," + outputList[i].TaxSale + ","
+                            sw.WriteLine(outputList[i].OutputNumber + ",\"" + outputList[i].OutputName + "\"," + outputList[i].TaxSale + ","
                                 + outputList[i].Wholesale + "," + outputList[i].FET + "," + outputList[i].Disposal + "," + outputList[i].Labor +
                                 "," + outputList[i].Scrap + "," + outputList[i].Casing + "," + outputList[i].TIS);
                         }
