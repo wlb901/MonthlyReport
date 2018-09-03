@@ -3,6 +3,7 @@
 Files for Invoices and Totals should be .csv files.
 The Invoice file should contain (in this order): Invoice number, customer name, item name, item price.
 The Totals file should contain (in this order): Invoice number, total price.
+Both files should be generated through Quickbooks reports.
 
 Press the Invoices button to select the Invoice file.
 Press the Totals button to select the Totals file.
