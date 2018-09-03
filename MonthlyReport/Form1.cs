@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace MonthlyReport
@@ -64,88 +59,138 @@ namespace MonthlyReport
             /*This will be the execute button. It will do three things: 
              * 1. Read in the files for Invoices and Totals
              * 2. Manipulate data to fit the final report
+             *       Combine totals from the totals list and the list of invoices. Then put all data in the proper columns.
              * 3. Generate a .CSV file with the final report */
 
             
+
             //1. Read files
-            List<InvoiceClass> invoiceList0 = ReadInvoiceFile(invoicesFile);
+            List<InvoiceClass> invoiceList = ReadInvoiceFile(invoicesFile);
             List<InvoiceTotal> totalsList = ReadTotalsFile(totalsFile);
             
+
+
+
             //2. Maniputlate data
             List<OutputClass> outputList = new List<OutputClass>();
-            List<InvoiceClass> sortedInvoice = invoiceList0.OrderBy(o => o.InvoiceNumber).ToList();
-            
-            for (int i = 0; i < sortedInvoice.Count(); i++)
-                
+
+            try
             {
-                sortedInvoice[i].InvoiceTotal = totalsList[i].Total;
+                for (int i = 0; i < invoiceList.Count(); i++)
+
+                {
+                    invoiceList[i].InvoiceTotal = totalsList[i].Total;
+                }
+
+                outputList = OutputList(invoiceList);
+
+
+
+                //3. Generate output file
+                GenerateOutput(outputList);
             }
-
-            outputList = OutputList(sortedInvoice);
-
-
-            //3. Generate output file
-            GenerateOutput(outputList);
+            catch
+            {
+                MessageBox.Show("Both files must contain the same number of invoices. \nPlease check files and try again.", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
 
         }
 
 
-        //Function to read invoiceFile to a list of objects
         static List<InvoiceClass> ReadInvoiceFile(string invoiceFile)
         {
             string prevInvoiceNumber = "0";
+
             List<InvoiceClass> invoiceList = new List<InvoiceClass>();
             List<ItemsClass> itemsList = new List<ItemsClass>();
+
+            
             var format = new NumberFormatInfo();
             format.NegativeSign = "-";
+
+
+            /*
+             * i is used to iterate through invoiceList. If an invoice number is the same
+             * as the previous invoice number (prevInvoiceNumber), it does not increment. This creates in object
+             * that includes all items with the same invoice number.
+             * - invoice #12345 might include multiple items
+             */
             int i = -1;
+
+
 
             try
             {
 
+                /* 
+                 * using TextFieldParser from Visual Basic to parse the CSV file
+                 * I originally had a problem parsing company names that contained commas.
+                 * This is the simplest method I found to ignore anything between double quotes.
+                */            
                 using (Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(invoiceFile))
                 {
                     parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
                     parser.SetDelimiters(",");
+
                     while (!parser.EndOfData)
                     {
-                        string[] words = parser.ReadFields();//line.Split(',');
+                        string[] words = parser.ReadFields();
 
                         InvoiceClass invoice = new InvoiceClass(0, "", itemsList, 0);
-                        //if (words[0].Any(x => !char.IsLetter(x)))
+
+
+                        // Only continue if the first item in the words list does not contain any letters.
+                        // This is to skip anything that doesn't start with an invoice number.
+                        // Usually the first two lines and the last line of the file should be skipped.
                         if (!words[0].Any(Char.IsLetter))
                         {
-                            //Console.WriteLine(words[0]);
+
                             if (words[0] != prevInvoiceNumber)
                             {
+
                                 List<ItemsClass> items = new List<ItemsClass>();
-                                items.Add(new ItemsClass(words[2], decimal.Parse(words[3])));
+
+                                // words[2] is the item name words[3] is the item price.
+                                items.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
+
+     
+                                // words[0] is the item number. words[1] is the invoice name
                                 invoiceList.Add(new InvoiceClass(int.Parse(words[0]), words[1], items, 0));
+
+  
                                 i++;
+
+      
                                 prevInvoiceNumber = words[0];
                             }
                             else
                             {
+                           
+                                // words[2] is the item name. words[3] is the item price.
                                 invoiceList[i].InvoiceItemArray.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
+
                                 prevInvoiceNumber = words[0];
                             }
-                        }//if                      
 
-                    }//while
+                        }
+
+                    }
+                    
                     parser.Close();
                 }
                     
             }
+
             catch (Exception ex)
             {
-                Console.WriteLine("invoice error");
-                MessageBox.Show(ex.Message);
+                Console.WriteLine(ex.ToString());
             }
-
             return invoiceList;
-        }
+        } 
 
-        //Function to read totalsFile to a list of objects
+
+
         static List<InvoiceTotal> ReadTotalsFile(string totalsFile)
         {
             List<InvoiceTotal> totalsList = new List<InvoiceTotal>();
@@ -162,28 +207,23 @@ namespace MonthlyReport
                         string[] words = parser.ReadFields();
                         if (!words[0].Any(Char.IsLetter))
                         {
-                            Console.WriteLine(words[0]);
                             totalsList.Add(new InvoiceTotal(int.Parse(words[0]), decimal.Parse(words[1])));
-
                         }
                     }
                     parser.Close();
                    
                 }
-                Console.WriteLine("closing");
                 
-                //file.Close();
             }
-             catch (Exception ex)
+             catch(Exception ex)
             {
-                Console.WriteLine("totals error");
-                MessageBox.Show(ex.Message);
-
+                Console.WriteLine(ex.ToString());
             }
             return totalsList;
         }
 
-        //Function to generate output as a csv file
+  
+
         static void GenerateOutput (List<OutputClass> outputList)
         {
             Stream myStream;
@@ -213,7 +253,8 @@ namespace MonthlyReport
             }
         }
 
-        //Function to create a list for output
+
+
         static List<OutputClass> OutputList (List<InvoiceClass> invoiceList)
         {
             List<OutputClass> output = new List<OutputClass>();
@@ -229,6 +270,7 @@ namespace MonthlyReport
                 decimal scrap = 0;
                 decimal casing = 0;
                 decimal total = invoiceList[i].InvoiceTotal;
+
 
                 if (IsTaxSale(invoiceList[i]))
                 {
@@ -271,7 +313,8 @@ namespace MonthlyReport
             return output;
         }
 
-        //Function to check if an invoice is a tax sale (or whole sale)
+
+   
         static bool IsTaxSale (InvoiceClass invoice)
         {
             decimal itemsTotal = 0;
@@ -280,12 +323,16 @@ namespace MonthlyReport
                 itemsTotal += invoice.InvoiceItemArray[i].ItemPrice;
             }
 
+            // If the items total = the invoice total, then it was not a tax sale.
+            // The difference comes from the taxed amount.
             if(itemsTotal == invoice.InvoiceTotal)
             {
+                // Not taxed - IsTaxSale = False
                 return false;
             }
             else
             {
+                // Taxed - IsTaxeSale = True
                 return true;
             }
         }
