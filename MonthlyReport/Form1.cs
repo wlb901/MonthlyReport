@@ -258,9 +258,9 @@ namespace MonthlyReport
         static List<OutputClass> OutputList (List<InvoiceClass> invoiceList)
         {
             List<OutputClass> output = new List<OutputClass>();
-            
-            
-            
+
+
+
             for (int i = 0; i < invoiceList.Count(); i++)
             {
                 decimal tax = 0;
@@ -269,7 +269,14 @@ namespace MonthlyReport
                 decimal labor = 0;
                 decimal scrap = 0;
                 decimal casing = 0;
-                decimal total = invoiceList[i].InvoiceTotal;
+                decimal total = 0;
+
+                //total = sum of item prices -> to not include tax
+                for (int j = 0; j < invoiceList[i].InvoiceItemArray.Count(); j++)
+                {
+                    total += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                }
+                
 
 
                 if (IsTaxSale(invoiceList[i]))
