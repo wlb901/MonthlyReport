@@ -13,7 +13,7 @@ I'm creating this program for a local small business (Owned by my parents, so I'
 The goal of this project is to speed up the creation of the Monthly Sales Report.
 
 ## Download
-![Current Version - Includes Example Files](https://github.com/wlb901/MonthlyReport/releases/tag/v1.0.0)
+![Current Version - Includes Example Files](https://github.com/wlb901/MonthlyReport/releases/tag/v1.0.1)
 
 <div class="paragraph"><p><br>
 </p></div>
