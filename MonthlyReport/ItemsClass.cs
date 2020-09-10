@@ -6,14 +6,34 @@ using System.Threading.Tasks;
 
 namespace MonthlyReport
 {
-    class ItemsClass
+    class Items
     {
-        public string ItemName { get; set; }
-        public decimal ItemPrice { get; set; }
-        public ItemsClass(string itemName, decimal itemPrice)
+        private string name;
+        private decimal price;
+        public Items(string itemName, decimal itemPrice)
         {
-            ItemName = itemName;
-            ItemPrice = itemPrice;
+            this.name = itemName;
+            this.price = itemPrice;
+        }
+
+        public string getName()
+        {
+            return name;
+        }
+
+        public decimal getPrice()
+        {
+            return price;
+        }
+
+        public void setPrice(decimal newPrice)
+        {
+            this.price = newPrice;
+        }
+
+        public void setName(string newName)
+        {
+            this.name = newName;
         }
     }
 }

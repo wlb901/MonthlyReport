@@ -6,18 +6,59 @@ using System.Threading.Tasks;
 
 namespace MonthlyReport
 {
-    class InvoiceClass
+    class Invoice
     {
-        public int InvoiceNumber { get; set; }
-        public string InvoiceName { get; set; }
-        public List <ItemsClass> InvoiceItemArray { get; set; }
-        public decimal InvoiceTotal { get; set; }
-        public InvoiceClass(int invoiceNumber, string invoiceName, List <ItemsClass> invoiceItemArray, decimal invoiceTotal)
+        private int number;
+        private string name;
+        private List<Items> itemList;
+        private decimal total;
+        public Invoice(int number, string name, List <Items> itemList, decimal total)
         {
-            InvoiceNumber = invoiceNumber;
-            InvoiceName = invoiceName;
-            InvoiceItemArray = invoiceItemArray;
-            InvoiceTotal = invoiceTotal;
+            this.number = number;
+            this.name = name;
+            this.itemList = itemList;
+            this.total = total;
+        }
+
+        public int getNumber()
+        {
+            return number;
+        }
+
+        public void setNumber(int newNumber)
+        {
+            this.number = newNumber;
+        }
+
+        public string getName()
+        {
+            return name;
+        }
+
+        public void setName(string newName)
+        {
+            this.name = newName;
+        }
+
+        public List<Items> getItemList()
+        {
+            return itemList;
+        }
+        
+        public void setItemList(List<Items> newItemList)
+        {
+            this.itemList = newItemList;
+        }
+
+        public decimal getTotal()
+        {
+            return total;
+        }
+
+        public void setTotal(decimal newTotal)
+        {
+            this.total = newTotal;
         }
     }
+
 }

@@ -7,6 +7,14 @@ using System.Windows.Forms;
 
 namespace MonthlyReport
 {
+
+    public static class StringExtensions
+    {
+        public static bool Contains(this string source, string toCheck, StringComparison comp)
+        {
+            return source?.IndexOf(toCheck, comp) >= 0;
+        }
+    }
     public partial class Form1 : Form
     {
         OpenFileDialog ofd = new OpenFileDialog();
@@ -65,7 +73,7 @@ namespace MonthlyReport
             
 
             //1. Read files
-            List<InvoiceClass> invoiceList = ReadInvoiceFile(invoicesFile);
+            List<Invoice> invoiceList = ReadInvoiceFile(invoicesFile);
             List<InvoiceTotal> totalsList = ReadTotalsFile(totalsFile);
             
 
@@ -79,7 +87,7 @@ namespace MonthlyReport
                 for (int i = 0; i < invoiceList.Count(); i++)
 
                 {
-                    invoiceList[i].InvoiceTotal = totalsList[i].Total;
+                    invoiceList[i].setTotal(totalsList[i].Total);
                 }
 
                 outputList = OutputList(invoiceList);
@@ -98,12 +106,12 @@ namespace MonthlyReport
         }
 
 
-        static List<InvoiceClass> ReadInvoiceFile(string invoiceFile)
+        static List<Invoice> ReadInvoiceFile(string invoiceFile)
         {
             string prevInvoiceNumber = "0";
 
-            List<InvoiceClass> invoiceList = new List<InvoiceClass>();
-            List<ItemsClass> itemsList = new List<ItemsClass>();
+            List<Invoice> invoiceList = new List<Invoice>();
+            List<Items> itemsList = new List<Items>();
 
             
             var format = new NumberFormatInfo();
@@ -137,7 +145,7 @@ namespace MonthlyReport
                     {
                         string[] words = parser.ReadFields();
 
-                        InvoiceClass invoice = new InvoiceClass(0, "", itemsList, 0);
+                        Invoice invoice = new Invoice(0, "", itemsList, 0);
 
 
                         // Only continue if the first item in the words list does not contain any letters.
@@ -149,14 +157,14 @@ namespace MonthlyReport
                             if (words[0] != prevInvoiceNumber)
                             {
 
-                                List<ItemsClass> items = new List<ItemsClass>();
+                                List<Items> items = new List<Items>();
 
                                 // words[2] is the item name words[3] is the item price.
-                                items.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
+                                items.Add(new Items(words[2], decimal.Parse(words[3], format)));
 
      
                                 // words[0] is the item number. words[1] is the invoice name
-                                invoiceList.Add(new InvoiceClass(int.Parse(words[0]), words[1], items, 0));
+                                invoiceList.Add(new Invoice(int.Parse(words[0]), words[1], items, 0));
 
   
                                 i++;
@@ -168,7 +176,7 @@ namespace MonthlyReport
                             {
                            
                                 // words[2] is the item name. words[3] is the item price.
-                                invoiceList[i].InvoiceItemArray.Add(new ItemsClass(words[2], decimal.Parse(words[3], format)));
+                                invoiceList[i].getItemList().Add(new Items(words[2], decimal.Parse(words[3], format)));
 
                                 prevInvoiceNumber = words[0];
                             }
@@ -254,8 +262,7 @@ namespace MonthlyReport
         }
 
 
-
-        static List<OutputClass> OutputList (List<InvoiceClass> invoiceList)
+        static List<OutputClass> OutputList (List<Invoice> invoiceList)
         {
             List<OutputClass> output = new List<OutputClass>();
 
@@ -272,48 +279,48 @@ namespace MonthlyReport
                 decimal total = 0;
 
                 //total = sum of item prices -> to not include tax
-                for (int j = 0; j < invoiceList[i].InvoiceItemArray.Count(); j++)
+                for (int j = 0; j < invoiceList[i].getItemList().Count(); j++)
                 {
-                    total += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                    total += invoiceList[i].getItemList()[j].getPrice();
                 }
                 
 
 
                 if (IsTaxSale(invoiceList[i]))
                 {
-                    for(int j = 0; j < invoiceList[i].InvoiceItemArray.Count(); j++)
+                    for(int j = 0; j < invoiceList[i].getItemList().Count(); j++)
                     {
-                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("F.E.T"))
+                        if(invoiceList[i].getItemList()[j].getName().Contains("F.E.T", StringComparison.OrdinalIgnoreCase))
                         {
-                            fet += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                            fet += invoiceList[i].getItemList()[j].getPrice();
                         }
-                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("DISPOSAL"))
+                        if(invoiceList[i].getItemList()[j].getName().Contains("DISPOSAL", StringComparison.OrdinalIgnoreCase))
                         {
-                            disposal += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                            disposal += invoiceList[i].getItemList()[j].getPrice();
                         }
-                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("DISMOUNT") ||
-                            invoiceList[i].InvoiceItemArray[j].ItemName.Contains("REPAIR"))
+                        if(invoiceList[i].getItemList()[j].getName().Contains("DISMOUNT", StringComparison.OrdinalIgnoreCase) ||
+                            invoiceList[i].getItemList()[j].getName().Contains("REPAIR", StringComparison.OrdinalIgnoreCase))
                         {
-                            labor += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                            labor += invoiceList[i].getItemList()[j].getPrice();
                         }
-                        if(invoiceList[i].InvoiceItemArray[j].ItemName == "SCRAP TIRE ENVIRONMENTAL FEE")
+                        if(invoiceList[i].getItemList()[j].getName().Contains("SCRAP TIRE ENVIRONMENTAL FEE", StringComparison.OrdinalIgnoreCase))
                         {
-                            scrap += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                            scrap += invoiceList[i].getItemList()[j].getPrice();
                         }
-                        if(invoiceList[i].InvoiceItemArray[j].ItemName.Contains("CASING") ||
-                           invoiceList[i].InvoiceItemArray[j].ItemName.Contains("ADJ"))
+                        if(invoiceList[i].getItemList()[j].getName().Contains("CASING", StringComparison.OrdinalIgnoreCase) ||
+                           invoiceList[i].getItemList()[j].getName().Contains("ADJ", StringComparison.OrdinalIgnoreCase))
                         { 
-                            casing += invoiceList[i].InvoiceItemArray[j].ItemPrice;
+                            casing += invoiceList[i].getItemList()[j].getPrice();
                         }
                         
                     }
                     tax = total - fet - disposal - labor - scrap - casing;
-                    output.Add(new OutputClass(invoiceList[i].InvoiceNumber, invoiceList[i].InvoiceName, tax, 0, 
+                    output.Add(new OutputClass(invoiceList[i].getNumber(), invoiceList[i].getName(), tax, 0, 
                         fet, disposal, labor, scrap, casing, total, total));
                 }
                 else
                 {
-                    output.Add(new OutputClass(invoiceList[i].InvoiceNumber, invoiceList[i].InvoiceName, 0, total,
+                    output.Add(new OutputClass(invoiceList[i].getNumber(), invoiceList[i].getName(), 0, total,
                         0, 0, 0, 0, 0, total, total));
                 }
             }
@@ -322,17 +329,17 @@ namespace MonthlyReport
 
 
    
-        static bool IsTaxSale (InvoiceClass invoice)
+        static bool IsTaxSale (Invoice invoice)
         {
             decimal itemsTotal = 0;
-            for(int i = 0; i < invoice.InvoiceItemArray.Count(); i++)
+            for(int i = 0; i < invoice.getItemList().Count(); i++)
             {
-                itemsTotal += invoice.InvoiceItemArray[i].ItemPrice;
+                itemsTotal += invoice.getItemList()[i].getPrice();
             }
 
             // If the items total = the invoice total, then it was not a tax sale.
             // The difference comes from the taxed amount.
-            if(itemsTotal == invoice.InvoiceTotal)
+            if(itemsTotal == invoice.getTotal())
             {
                 // Not taxed - IsTaxSale = False
                 return false;
