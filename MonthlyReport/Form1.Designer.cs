@@ -29,10 +29,10 @@
         private void InitializeComponent()
         {
             this.InvoicesButton = new System.Windows.Forms.Button();
-            this.TotalsButton = new System.Windows.Forms.Button();
+            this.TaxButton = new System.Windows.Forms.Button();
             this.HelpButton = new System.Windows.Forms.Button();
             this.CreateFileButton = new System.Windows.Forms.Button();
-            this.TotalsTextBox = new System.Windows.Forms.TextBox();
+            this.TaxTextBox = new System.Windows.Forms.TextBox();
             this.InvoicesTextBox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
@@ -49,17 +49,17 @@
             this.InvoicesButton.UseVisualStyleBackColor = true;
             this.InvoicesButton.Click += new System.EventHandler(this.InvoicesButton_Click);
             // 
-            // TotalsButton
+            // TaxButton
             // 
-            this.TotalsButton.AutoSize = true;
-            this.TotalsButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TotalsButton.Location = new System.Drawing.Point(12, 95);
-            this.TotalsButton.Name = "TotalsButton";
-            this.TotalsButton.Size = new System.Drawing.Size(96, 30);
-            this.TotalsButton.TabIndex = 1;
-            this.TotalsButton.Text = "Totals";
-            this.TotalsButton.UseVisualStyleBackColor = true;
-            this.TotalsButton.Click += new System.EventHandler(this.TotalsButton_Click);
+            this.TaxButton.AutoSize = true;
+            this.TaxButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TaxButton.Location = new System.Drawing.Point(12, 95);
+            this.TaxButton.Name = "TaxButton";
+            this.TaxButton.Size = new System.Drawing.Size(96, 30);
+            this.TaxButton.TabIndex = 1;
+            this.TaxButton.Text = "Tax";
+            this.TaxButton.UseVisualStyleBackColor = true;
+            this.TaxButton.Click += new System.EventHandler(this.TaxButton_Click);
             // 
             // HelpButton
             // 
@@ -86,14 +86,15 @@
             this.CreateFileButton.UseVisualStyleBackColor = true;
             this.CreateFileButton.Click += new System.EventHandler(this.CreateFileButton_Click);
             // 
-            // TotalsTextBox
+            // TaxTextBox
             // 
-            this.TotalsTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TotalsTextBox.Location = new System.Drawing.Point(114, 97);
-            this.TotalsTextBox.Name = "TotalsTextBox";
-            this.TotalsTextBox.Size = new System.Drawing.Size(336, 27);
-            this.TotalsTextBox.TabIndex = 4;
+            this.TaxTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TaxTextBox.Location = new System.Drawing.Point(114, 97);
+            this.TaxTextBox.Name = "TaxTextBox";
+            this.TaxTextBox.Size = new System.Drawing.Size(336, 27);
+            this.TaxTextBox.TabIndex = 4;
             // 
+
             // InvoicesTextBox
             // 
             this.InvoicesTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -110,7 +111,7 @@
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(266, 20);
             this.label1.TabIndex = 6;
-            this.label1.Text = "Select files for Invoices and Totals";
+            this.label1.Text = "Select files for Invoices and Tax";
             // 
             // Form1
             // 
@@ -119,10 +120,10 @@
             this.ClientSize = new System.Drawing.Size(462, 171);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.InvoicesTextBox);
-            this.Controls.Add(this.TotalsTextBox);
+            this.Controls.Add(this.TaxTextBox);
             this.Controls.Add(this.CreateFileButton);
             this.Controls.Add(this.HelpButton);
-            this.Controls.Add(this.TotalsButton);
+            this.Controls.Add(this.TaxButton);
             this.Controls.Add(this.InvoicesButton);
             this.Name = "Form1";
             this.Text = "Monthly Report";
@@ -134,10 +135,10 @@
         #endregion
 
         private System.Windows.Forms.Button InvoicesButton;
-        private System.Windows.Forms.Button TotalsButton;
+        private System.Windows.Forms.Button TaxButton;
         private System.Windows.Forms.Button HelpButton;
         private System.Windows.Forms.Button CreateFileButton;
-        private System.Windows.Forms.TextBox TotalsTextBox;
+        private System.Windows.Forms.TextBox TaxTextBox;
         private System.Windows.Forms.TextBox InvoicesTextBox;
         private System.Windows.Forms.Label label1;
     }

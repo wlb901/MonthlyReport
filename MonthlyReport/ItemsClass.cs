@@ -10,9 +10,11 @@ namespace MonthlyReport
     {
         private string name;
         private decimal price;
-        public Items(string itemName, decimal itemPrice)
+        private string taxCode;
+        public Items(string itemName, string taxCode, decimal itemPrice)
         {
             this.name = itemName;
+            this.taxCode = taxCode;
             this.price = itemPrice;
         }
 
@@ -34,6 +36,16 @@ namespace MonthlyReport
         public void setName(string newName)
         {
             this.name = newName;
+        }
+
+        public string getTaxCode()
+        {
+            return taxCode;
+        }
+
+        public void setTaxCode(string newTaxCode)
+        {
+            this.taxCode = newTaxCode;
         }
     }
 }

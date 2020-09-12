@@ -8,16 +8,30 @@ namespace MonthlyReport
 {
     class Invoice
     {
+        private DateTime date;
         private int number;
         private string name;
         private List<Items> itemList;
         private decimal total;
-        public Invoice(int number, string name, List <Items> itemList, decimal total)
+        private decimal tax;
+        public Invoice(DateTime date, int number, string name, List <Items> itemList, decimal total, decimal tax)
         {
+            this.date = date;
             this.number = number;
             this.name = name;
             this.itemList = itemList;
             this.total = total;
+            this.tax = tax;
+        }
+
+        public DateTime getDate()
+        {
+            return date;
+        }
+
+        public void setDate(DateTime newDate)
+        {
+            this.date = newDate;
         }
 
         public int getNumber()
@@ -58,6 +72,16 @@ namespace MonthlyReport
         public void setTotal(decimal newTotal)
         {
             this.total = newTotal;
+        }
+
+        public decimal getTax()
+        {
+            return tax;
+        }
+
+        public void setTax(decimal newTax)
+        {
+            this.tax = newTax;
         }
     }
 

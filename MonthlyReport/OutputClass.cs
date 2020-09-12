@@ -8,6 +8,7 @@ namespace MonthlyReport
 {
     class OutputClass
     {
+        public DateTime Date { get; set; }
         public int OutputNumber { get; set; }
         public string OutputName { get; set; }
         public decimal TaxSale { get; set; }
@@ -19,9 +20,10 @@ namespace MonthlyReport
         public decimal Casing { get; set; }
         public decimal TIS { get; set; }
         public decimal Charged { get; set; }
-        public OutputClass(int outputNumber, string outputName, decimal taxSale, decimal wholesale, 
+        public OutputClass(DateTime date, int outputNumber, string outputName, decimal taxSale, decimal wholesale, 
             decimal fet, decimal disposal, decimal labor, decimal scrap, decimal casing, decimal tis, decimal charged)
         {
+            Date = date;
             OutputNumber = outputNumber;
             OutputName = outputName;
             TaxSale = taxSale;

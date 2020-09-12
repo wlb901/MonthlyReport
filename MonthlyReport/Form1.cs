@@ -19,7 +19,7 @@ namespace MonthlyReport
     {
         OpenFileDialog ofd = new OpenFileDialog();
         string invoicesFile;
-        string totalsFile;
+        string taxFile;
 
         public Form1()
         {
@@ -51,14 +51,15 @@ namespace MonthlyReport
             }
         }
 
-        private void TotalsButton_Click(object sender, EventArgs e)
+        
+        private void TaxButton_Click(object sender, EventArgs e)
         {
             //select Totals File
             ofd.Filter = "CSV|*csv";
             if (ofd.ShowDialog() == DialogResult.OK)
             {
-                totalsFile = ofd.FileName;
-                TotalsTextBox.Text = ofd.SafeFileName;
+                taxFile = ofd.FileName;
+                TaxTextBox.Text = ofd.SafeFileName;
             }
         }
 
@@ -73,8 +74,8 @@ namespace MonthlyReport
             
 
             //1. Read files
-            List<Invoice> invoiceList = ReadInvoiceFile(invoicesFile);
-            List<InvoiceTotal> totalsList = ReadTotalsFile(totalsFile);
+            List<Invoice> invoiceList = ReadInvoiceFile(invoicesFile, taxFile);
+            //List<InvoiceTotal> totalsList = ReadTotalsFile(totalsFile);
             
 
 
@@ -85,11 +86,17 @@ namespace MonthlyReport
             try
             {
                 for (int i = 0; i < invoiceList.Count(); i++)
-
                 {
-                    invoiceList[i].setTotal(totalsList[i].Total);
+                    decimal total = 0;
+                    //invoiceList[i].setTotal(totalsList[i].Total);
+                    for (int j = 0; j < invoiceList[i].getItemList().Count(); j++)
+                    {
+                        total += invoiceList[i].getItemList()[j].getPrice();
+                    }
+                    invoiceList[i].setTotal(total);
                 }
 
+                Console.WriteLine(invoiceList[0].getNumber());
                 outputList = OutputList(invoiceList);
 
 
@@ -97,22 +104,65 @@ namespace MonthlyReport
                 //3. Generate output file
                 GenerateOutput(outputList);
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show("Both files must contain the same number of invoices. \nPlease check files and try again.", "Error",
+               // MessageBox.Show("Both files must contain the same number of invoices. \nPlease check files and try again.", "Error",
+               MessageBox.Show(ex.ToString(), "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
         }
 
+        struct InvoiceTax
+        {
+            public int number;
+            public decimal tax;
+        }
 
-        static List<Invoice> ReadInvoiceFile(string invoiceFile)
+        static List<InvoiceTax> ReadTaxFile(string taxFile)
+        {
+            List<InvoiceTax> taxList = new List<InvoiceTax>();
+
+            try
+            {
+                using (Microsoft.VisualBasic.FileIO.TextFieldParser parser = new Microsoft.VisualBasic.FileIO.TextFieldParser(taxFile))
+                {
+                    parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
+                    parser.SetDelimiters(",");
+                    while (!parser.EndOfData)
+                    {
+                        string[] words = parser.ReadFields();
+                        if (!words[0].Any(Char.IsLetter))
+                        {
+                            InvoiceTax temp;
+                            temp.number = int.Parse(words[0]);
+                            temp.tax = decimal.Parse(words[1]);
+                            Console.WriteLine("number: " + temp.number);
+                            //Console.WriteLine("tax: " + temp.tax);
+                            taxList.Add(temp);
+                        }
+                    }
+                    parser.Close();
+
+                }
+                
+            }
+             catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+            return taxList;
+        }
+
+
+        static List<Invoice> ReadInvoiceFile(string invoiceFile, string taxFile)
         {
             string prevInvoiceNumber = "0";
 
             List<Invoice> invoiceList = new List<Invoice>();
             List<Items> itemsList = new List<Items>();
 
+            List<InvoiceTax> taxList = ReadTaxFile(taxFile);
             
             var format = new NumberFormatInfo();
             format.NegativeSign = "-";
@@ -141,47 +191,69 @@ namespace MonthlyReport
                     parser.TextFieldType = Microsoft.VisualBasic.FileIO.FieldType.Delimited;
                     parser.SetDelimiters(",");
 
+                    int taxIndex = 0;
+
                     while (!parser.EndOfData)
                     {
                         string[] words = parser.ReadFields();
 
-                        Invoice invoice = new Invoice(0, "", itemsList, 0);
+                        DateTime date = new DateTime();
+
+                        // Date, number, name, itemsList, total, tax
+                        Invoice invoice = new Invoice(date, 0, "", itemsList, 0, 0);
+
 
 
                         // Only continue if the first item in the words list does not contain any letters.
                         // This is to skip anything that doesn't start with an invoice number.
                         // Usually the first two lines and the last line of the file should be skipped.
-                        if (!words[0].Any(Char.IsLetter))
+                        if (!words[1].Any(Char.IsLetter))
                         {
+                            Console.WriteLine("IsLetter");
 
-                            if (words[0] != prevInvoiceNumber)
+                            if (words[1] != prevInvoiceNumber)
                             {
+                                Console.WriteLine("not prevInvoiceNumber");
+                                Console.WriteLine(words[3]);
+                                //Console.WriteLine(words[4]);
+                                List<Items> items = new List<Items>
+                                {
 
-                                List<Items> items = new List<Items>();
+                                    // words[2] is the item name words[3] is the item price.
+                                    
+                                    new Items(words[3], words[4], decimal.Parse(words[5], format))
+                                };
 
-                                // words[2] is the item name words[3] is the item price.
-                                items.Add(new Items(words[2], decimal.Parse(words[3], format)));
 
-     
                                 // words[0] is the item number. words[1] is the invoice name
-                                invoiceList.Add(new Invoice(int.Parse(words[0]), words[1], items, 0));
+                                Console.WriteLine(words[0]);
+                                date = DateTime.ParseExact(words[0], "M/d/yyyy", System.Globalization.CultureInfo.InvariantCulture);
+                                Console.WriteLine(date);
 
-  
+                                if (int.Parse(words[1]) != taxList[taxIndex].number)
+                                {
+                                    throw new Exception("Invoice numbers don't match. Invoice number: " + int.Parse(words[1]) + " Tax invoice number: " + taxList[taxIndex].number);
+                                }
+
+                                invoiceList.Add(new Invoice(date, int.Parse(words[1]), words[2], items, 0, taxList[taxIndex].tax));
+
+                                taxIndex++;
                                 i++;
-
       
-                                prevInvoiceNumber = words[0];
+                                prevInvoiceNumber = words[1];
                             }
                             else
                             {
+                                Console.WriteLine("is prevInvoiceNumber");
                            
-                                // words[2] is the item name. words[3] is the item price.
-                                invoiceList[i].getItemList().Add(new Items(words[2], decimal.Parse(words[3], format)));
+                                // words[2] is the item name. words[3] is the tax code. words[4] is the price.
+                                invoiceList[i].getItemList().Add(new Items(words[3], words[4], decimal.Parse(words[5], format)));
 
-                                prevInvoiceNumber = words[0];
+                                prevInvoiceNumber = words[1];
                             }
 
                         }
+                        Console.WriteLine("not is letter");
 
                     }
                     
@@ -194,12 +266,15 @@ namespace MonthlyReport
             {
                 Console.WriteLine(ex.ToString());
             }
+
+            Console.WriteLine("0 number: " + invoiceList[0].getNumber());
+            Console.WriteLine("invoiceList count: " + invoiceList.Count());
             return invoiceList;
         } 
 
 
 
-        static List<InvoiceTotal> ReadTotalsFile(string totalsFile)
+      /*  static List<InvoiceTotal> ReadTotalsFile(string totalsFile)
         {
             List<InvoiceTotal> totalsList = new List<InvoiceTotal>();
 
@@ -229,7 +304,7 @@ namespace MonthlyReport
             }
             return totalsList;
         }
-
+*/
   
 
         static void GenerateOutput (List<OutputClass> outputList)
@@ -246,11 +321,14 @@ namespace MonthlyReport
                 {
                     using (StreamWriter sw = new StreamWriter(myStream))
                     {
-                        sw.WriteLine("Invoice,Name,TaxSale,WholeSale,FET,Disp,Labor,Scrap,Casing,TIS");
+                        sw.WriteLine("Date,Invoice,Name,TaxSale,WholeSale,FET,Disp,Labor,Scrap,Casing,TIS");
+
+                        Console.WriteLine("Count: " + outputList.Count());
+                        Console.WriteLine("outputNumber[0]: " + outputList[0].OutputNumber);
 
                         for (int i = 0; i < outputList.Count(); i++)
                         {
-                            sw.WriteLine(outputList[i].OutputNumber + ",\"" + outputList[i].OutputName + "\"," + outputList[i].TaxSale + ","
+                            sw.WriteLine(outputList[i].Date.Month + "/" + outputList[i].Date.Day + "/" + outputList[i].Date.Year + "," + outputList[i].OutputNumber + ",\"" + outputList[i].OutputName + "\"," + outputList[i].TaxSale + ","
                                 + outputList[i].Wholesale + "," + outputList[i].FET + "," + outputList[i].Disposal + "," + outputList[i].Labor +
                                 "," + outputList[i].Scrap + "," + outputList[i].Casing + "," + outputList[i].TIS);
                         }
@@ -270,7 +348,7 @@ namespace MonthlyReport
 
             for (int i = 0; i < invoiceList.Count(); i++)
             {
-                decimal tax = 0;
+                decimal taxSale = 0;
                 decimal fet = 0;
                 decimal disposal = 0;
                 decimal labor = 0;
@@ -279,12 +357,14 @@ namespace MonthlyReport
                 decimal total = 0;
 
                 //total = sum of item prices -> to not include tax
+                /*
                 for (int j = 0; j < invoiceList[i].getItemList().Count(); j++)
                 {
                     total += invoiceList[i].getItemList()[j].getPrice();
                 }
-                
+               */
 
+                total = invoiceList[i].getTotal();
 
                 if (IsTaxSale(invoiceList[i]))
                 {
@@ -314,14 +394,18 @@ namespace MonthlyReport
                         }
                         
                     }
-                    tax = total - fet - disposal - labor - scrap - casing;
-                    output.Add(new OutputClass(invoiceList[i].getNumber(), invoiceList[i].getName(), tax, 0, 
-                        fet, disposal, labor, scrap, casing, total, total));
+                    //TODO should just be invoice.total?????
+                    Console.WriteLine("outputTax: " + invoiceList[i].getTax());
+                    taxSale = total - fet - disposal - labor - scrap - casing + invoiceList[i].getTax();
+                    output.Add(new OutputClass(invoiceList[i].getDate(), invoiceList[i].getNumber(), invoiceList[i].getName(), taxSale, 0, 
+                        fet, disposal, labor, scrap, casing, invoiceList[i].getTotal() + invoiceList[i].getTax(), invoiceList[i].getTotal() + invoiceList[i].getTax()));
+                    Console.WriteLine("taxSale");
                 }
                 else
                 {
-                    output.Add(new OutputClass(invoiceList[i].getNumber(), invoiceList[i].getName(), 0, total,
+                    output.Add(new OutputClass(invoiceList[i].getDate(), invoiceList[i].getNumber(), invoiceList[i].getName(), 0, total,
                         0, 0, 0, 0, 0, total, total));
+                    Console.WriteLine("WholeSale");
                 }
             }
             return output;
@@ -329,9 +413,26 @@ namespace MonthlyReport
 
 
    
+        // if all items in invoice are "Non-Taxable Sales", then it is wholesale (IsTaxSale returns false)
         static bool IsTaxSale (Invoice invoice)
         {
-            decimal itemsTotal = 0;
+
+            if (invoice.getTax() != 0)
+            {
+                return true;
+            }
+            /*for(int i = 0; i < invoice.getItemList().Count(); i++)
+            {
+                if (invoice.getItemList()[i].getTaxCode() == "Taxable Sales")
+                {
+                    return true;
+                }
+            }
+*/
+            return false;
+
+
+          /*  decimal itemsTotal = 0;
             for(int i = 0; i < invoice.getItemList().Count(); i++)
             {
                 itemsTotal += invoice.getItemList()[i].getPrice();
@@ -349,6 +450,7 @@ namespace MonthlyReport
                 // Taxed - IsTaxeSale = True
                 return true;
             }
+            */
         }
 
 
