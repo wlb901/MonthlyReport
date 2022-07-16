@@ -137,7 +137,7 @@ namespace MonthlyReport
                             InvoiceTax temp;
                             temp.number = int.Parse(words[0]);
                             temp.tax = decimal.Parse(words[1]);
-                            Console.WriteLine("number: " + temp.number);
+                            //Console.WriteLine("number: " + temp.number);
                             //Console.WriteLine("tax: " + temp.tax);
                             taxList.Add(temp);
                         }
@@ -151,6 +151,7 @@ namespace MonthlyReport
             {
                 Console.WriteLine(ex.ToString());
             }
+            taxList.Sort((x, y) => x.number.CompareTo(y.number));
             return taxList;
         }
 
@@ -226,9 +227,9 @@ namespace MonthlyReport
 
 
                                 // words[0] is the item number. words[1] is the invoice name
-                                Console.WriteLine(words[0]);
+                                //Console.WriteLine(words[0]);
                                 date = DateTime.ParseExact(words[0], "M/d/yyyy", System.Globalization.CultureInfo.InvariantCulture);
-                                Console.WriteLine(date);
+                                //Console.WriteLine(date);
 
                                 if (int.Parse(words[1]) != taxList[taxIndex].number)
                                 {
@@ -244,7 +245,7 @@ namespace MonthlyReport
                             }
                             else
                             {
-                                Console.WriteLine("is prevInvoiceNumber");
+                                //Console.WriteLine("is prevInvoiceNumber");
                            
                                 // words[2] is the item name. words[3] is the tax code. words[4] is the price.
                                 invoiceList[i].getItemList().Add(new Items(words[3], words[4], decimal.Parse(words[5], format)));
@@ -253,7 +254,7 @@ namespace MonthlyReport
                             }
 
                         }
-                        Console.WriteLine("not is letter");
+                        //Console.WriteLine("not is letter");
 
                     }
                     
@@ -395,17 +396,17 @@ namespace MonthlyReport
                         
                     }
                     //TODO should just be invoice.total?????
-                    Console.WriteLine("outputTax: " + invoiceList[i].getTax());
+                    //Console.WriteLine("outputTax: " + invoiceList[i].getTax());
                     taxSale = total - fet - disposal - labor - scrap - casing + invoiceList[i].getTax();
                     output.Add(new OutputClass(invoiceList[i].getDate(), invoiceList[i].getNumber(), invoiceList[i].getName(), taxSale, 0, 
                         fet, disposal, labor, scrap, casing, invoiceList[i].getTotal() + invoiceList[i].getTax(), invoiceList[i].getTotal() + invoiceList[i].getTax()));
-                    Console.WriteLine("taxSale");
+                    //Console.WriteLine("taxSale");
                 }
                 else
                 {
                     output.Add(new OutputClass(invoiceList[i].getDate(), invoiceList[i].getNumber(), invoiceList[i].getName(), 0, total,
                         0, 0, 0, 0, 0, total, total));
-                    Console.WriteLine("WholeSale");
+                    //Console.WriteLine("WholeSale");
                 }
             }
             return output;
